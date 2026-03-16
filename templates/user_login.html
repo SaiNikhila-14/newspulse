@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NewsPulse — User Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: #080c10;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,212,255,0.12), transparent);
+    font-family: 'DM Sans', sans-serif; color: #e8edf3;
+  }
+  .card {
+    width: 100%; max-width: 400px; background: #0d1117;
+    border: 1px solid #1e2d3d; border-radius: 16px; padding: 40px 36px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  .logo { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; text-align: center; margin-bottom: 6px; }
+  .logo span { color: #00d4ff; }
+  .subtitle { text-align: center; font-size: 13px; color: #5a7a94; margin-bottom: 32px; }
+  .field { margin-bottom: 18px; }
+  label { display: block; font-size: 12px; color: #5a7a94; font-family: 'DM Mono', monospace; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 7px; }
+  input {
+    width: 100%; background: #141b24; border: 1px solid #1e2d3d; color: #e8edf3;
+    padding: 11px 14px; border-radius: 8px; font-size: 14px; font-family: 'DM Sans', sans-serif;
+    outline: none; transition: border-color 0.18s;
+  }
+  input:focus { border-color: #00d4ff; }
+  .btn {
+    width: 100%; padding: 12px; background: #00d4ff; color: #000; border: none;
+    border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.18s; margin-top: 6px;
+  }
+  .btn:hover { background: #00b8d9; box-shadow: 0 0 20px rgba(0,212,255,0.3); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .error { background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.3); color: #ff4757; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .footer-link { text-align: center; margin-top: 22px; font-size: 13px; color: #5a7a94; }
+  .footer-link a { color: #00d4ff; text-decoration: none; }
+  .footer-link a:hover { text-decoration: underline; }
+  .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #1e2d3d; }
+  .divider span { font-size: 12px; color: #5a7a94; font-family: 'DM Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">News<span>Pulse</span></div>
+  <div class="subtitle">Sign in to your account</div>
+
+  <div class="error" id="errMsg"></div>
+
+  <div class="field">
+    <label>Username</label>
+    <input type="text" id="username" placeholder="Your username" autocomplete="username"/>
+  </div>
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Your password" autocomplete="current-password"/>
+  </div>
+
+  <button class="btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+
+  <div class="divider"><span>or</span></div>
+  <div class="footer-link">Don't have an account? <a href="/register">Create one</a></div>
+  <div class="footer-link" style="margin-top:8px"><a href="/">← Back to home</a></div>
+</div>
+
+<script>
+async function doLogin() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('loginBtn');
+  const err      = document.getElementById('errMsg');
+
+  err.style.display = 'none';
+  if (!username || !password) {
+    err.textContent = 'Please enter username and password.';
+    err.style.display = 'block'; return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Signing in…';
+
+  const res  = await fetch('/api/user/login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+  btn.disabled = false; btn.textContent = 'Sign In';
+
+  if (data.success) {
+    window.location.href = data.redirect;
+  } else {
+    err.textContent   = data.error;
+    err.style.display = 'block';
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

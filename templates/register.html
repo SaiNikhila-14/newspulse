@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NewsPulse — Create Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: #080c10;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,212,255,0.12), transparent);
+    font-family: 'DM Sans', sans-serif; color: #e8edf3;
+  }
+  .card {
+    width: 100%; max-width: 420px; background: #0d1117;
+    border: 1px solid #1e2d3d; border-radius: 16px; padding: 40px 36px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  .logo { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; text-align: center; margin-bottom: 6px; }
+  .logo span { color: #00d4ff; }
+  .subtitle { text-align: center; font-size: 13px; color: #5a7a94; margin-bottom: 32px; }
+  .field { margin-bottom: 18px; }
+  label { display: block; font-size: 12px; color: #5a7a94; font-family: 'DM Mono', monospace; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 7px; }
+  input {
+    width: 100%; background: #141b24; border: 1px solid #1e2d3d; color: #e8edf3;
+    padding: 11px 14px; border-radius: 8px; font-size: 14px; font-family: 'DM Sans', sans-serif;
+    outline: none; transition: border-color 0.18s;
+  }
+  input:focus { border-color: #00d4ff; }
+  .btn {
+    width: 100%; padding: 12px; background: #00d4ff; color: #000; border: none;
+    border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.18s; margin-top: 6px;
+  }
+  .btn:hover { background: #00b8d9; box-shadow: 0 0 20px rgba(0,212,255,0.3); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .error { background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.3); color: #ff4757; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .success { background: rgba(124,252,94,0.1); border: 1px solid rgba(124,252,94,0.3); color: #7cfc5e; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .footer-link { text-align: center; margin-top: 22px; font-size: 13px; color: #5a7a94; }
+  .footer-link a { color: #00d4ff; text-decoration: none; }
+  .footer-link a:hover { text-decoration: underline; }
+  .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #1e2d3d; }
+  .divider span { font-size: 12px; color: #5a7a94; font-family: 'DM Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">News<span>Pulse</span></div>
+  <div class="subtitle">Create your account</div>
+
+  <div class="error" id="errMsg"></div>
+  <div class="success" id="okMsg"></div>
+
+  <div class="field">
+    <label>Username</label>
+    <input type="text" id="username" placeholder="e.g. johndoe" autocomplete="username"/>
+  </div>
+  <div class="field">
+    <label>Email</label>
+    <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+  </div>
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Min. 6 characters" autocomplete="new-password"/>
+  </div>
+  <div class="field">
+    <label>Confirm Password</label>
+    <input type="password" id="confirm" placeholder="Repeat password" autocomplete="new-password"/>
+  </div>
+
+  <button class="btn" id="regBtn" onclick="doRegister()">Create Account</button>
+
+  <div class="divider"><span>or</span></div>
+  <div class="footer-link">Already have an account? <a href="/user/login">Sign in</a></div>
+  <div class="footer-link" style="margin-top:8px"><a href="/">← Back to home</a></div>
+</div>
+
+<script>
+async function doRegister() {
+  const username = document.getElementById('username').value.trim();
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const confirm  = document.getElementById('confirm').value;
+  const btn      = document.getElementById('regBtn');
+  const err      = document.getElementById('errMsg');
+  const ok       = document.getElementById('okMsg');
+
+  err.style.display = 'none';
+  ok.style.display  = 'none';
+
+  if (password !== confirm) {
+    err.textContent = 'Passwords do not match.';
+    err.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Creating account…';
+
+  const res  = await fetch('/api/register', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password })
+  });
+  const data = await res.json();
+  btn.disabled = false; btn.textContent = 'Create Account';
+
+  if (data.success) {
+    ok.textContent    = data.message;
+    ok.style.display  = 'block';
+    setTimeout(() => window.location.href = data.redirect, 1200);
+  } else {
+    err.textContent   = data.error;
+    err.style.display = 'block';
+  }
+}
+
+// Allow Enter key
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+</script>
+</body>
+</html>
